@@ -14,7 +14,7 @@ Payoff Functions
     :toctree: generated
 
     european_payoff
-    lookback_payoff
+    lookback_payoff_fixed
     american_binary_payoff
     european_binary_payoff
     european_forward_start_payoff

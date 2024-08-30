@@ -43,7 +43,7 @@ def european_payoff(input: Tensor, call: bool = True, strike: float = 1.0) -> Te
         return fn.relu(strike - input[..., -1])
 
 
-def lookback_payoff(input: Tensor, call: bool = True, strike: float = 1.0) -> Tensor:
+def lookback_payoff_fixed(input: Tensor, call: bool = True, strike: float = 1.0) -> Tensor:
     """Returns the payoff of a lookback option with a fixed strike.
 
     .. seealso::
@@ -68,6 +68,36 @@ def lookback_payoff(input: Tensor, call: bool = True, strike: float = 1.0) -> Te
     else:
         return fn.relu(strike - input.min(dim=-1).values)
 
+
+def lookback_payoff_floating(input: torch.Tensor, call: bool = True) -> torch.Tensor:
+    """Returns the value of a floating strike lookback option.
+
+    Args:
+        input (torch.Tensor): The input tensor representing the price trajectory.
+        call (bool, default=True): Specifies whether the option is a call or put.
+
+    Shape:
+        - input: :math:`(*, T)` where
+          :math:`T` is the number of time steps and
+          :math:`*` means any number of additional dimensions.
+        - output: :math:`(*)`
+
+    Returns:
+        torch.Tensor: The value of the floating strike lookback option.
+    """
+    final_price = input[..., -1]  # Final price at maturity
+
+    if call:
+        # Minimum price along the last dimension (time dimension)
+        min_price = input.min(dim=-1).values
+        # Call option value: max(S_T - S_min, 0)
+        return fn.relu(final_price - min_price)
+    else:
+        # Maximum price along the last dimension (time dimension)
+        max_price = input.max(dim=-1).values
+        # Put option value: max(S_max - S_T, 0)
+        return fn.relu(max_price - final_price)
+    
 
 def american_binary_payoff(
     input: Tensor, call: bool = True, strike: float = 1.0
